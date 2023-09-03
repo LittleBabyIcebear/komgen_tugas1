@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import random
 from Basanitrogen import Codon_DNA
 
@@ -12,7 +13,7 @@ def generate_random_sequence(sequence_type, nitrogen_base, num_sequences):
             number = 3
         random_sequence.append(nitrogen_base[number])
     return random_sequence
-
+    
 def split_sequence_into_codons(random_sequence):
     split_sequence = []
     current_string = ""
@@ -31,24 +32,33 @@ def map_codons_to_amino_acids(split_sequence, Codon_DNA):
 
 def main():
     st.title("🧬Random DNA/RNA Sequence Generator🧬")
+    st.sidebar.title("Choose It!")
 
-    purines = ["A", "G"]
-    pyrimidines = ["C", "T", "U"]
-    nitrogen_base = purines + pyrimidines
+    selected_option = st.sidebar.radio("Select an option", ["Show Amino Acid Table", "Analyze Sequence to Amino Acid"])
 
-    choose = st.radio("Choose RNA or DNA sequence?", ("RNA", "DNA"))
-    num_sequences = st.number_input("Enter the number of sequences (must be a multiple of 3):", min_value=3, step=3)
+    if selected_option == "Show Amino Acid Table":
+        df = pd.DataFrame([(amino_acid, ', '.join(data['Codon']), data['Single_Letter']) for amino_acid, data in Codon_DNA.items()],
+                            columns=['Amino Acid', 'Codon', 'Single Letter'])
+        st.table(df)
 
-    if st.button("Run"):
-        if choose:
-            random_sequence = generate_random_sequence(choose, nitrogen_base, num_sequences)
+    elif selected_option == "Analyze Sequence to Amino Acid":
+        purines = ["A", "G"]
+        pyrimidines = ["C", "T", "U"]
+        nitrogen_base = purines + pyrimidines
 
+        choose = st.radio("Choose RNA or DNA sequence?", ("RNA", "DNA"))
+        num_sequences = st.number_input("Enter the number of sequences (must be a multiple of 3):", min_value=3, step=3)
+        random_sequence = generate_random_sequence(choose, nitrogen_base, num_sequences)
+
+        #result_container = st.empty()  # Wadah untuk hasil saat sudah diubah menjadi 
+
+        if st.button("Run"):
             st.subheader("Generated Sequence")
             st.write("".join(random_sequence))
 
             if choose == "RNA":
                 random_sequence = [base if base != "U" else "T" for base in random_sequence]
-
+            
             split_sequence = split_sequence_into_codons(random_sequence)
 
             st.subheader("Split Sequence into Codons")
