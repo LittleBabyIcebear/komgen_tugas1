@@ -31,20 +31,26 @@ def map_codons_to_amino_acids(split_sequence, Codon_DNA):
                 st.write(f"Codon {base}: {amino_acid} ({data['Single_Letter']})")
 
 def main():
+    purines = ["A", "G"]
+    pyrimidines = ["C", "T", "U"]
+    nitrogen_base = purines + pyrimidines
     st.title("🧬Random DNA/RNA Sequence Generator🧬")
-    st.sidebar.title("Choose It!")
+    st.sidebar.title("Choose It! 🔎")
 
     selected_option = st.sidebar.radio("Select an option", ["Show Amino Acid Table", "Analyze Sequence to Amino Acid"])
 
     if selected_option == "Show Amino Acid Table":
+        st.subheader("Nitrogen Base Classification")
+        st.write(f"Purines: {purines}")
+        st.write(f"Pyrimidines: {pyrimidines}")
+        st.write("DNA: Adenin, Gunanin, Cytosin, Timin")
+        st.write("RNA: Adenin, Gunanin, Cytosin, Uracil")
+        st.subheader("Related Codon to Amino Acid Table")
         df = pd.DataFrame([(amino_acid, ', '.join(data['Codon']), data['Single_Letter']) for amino_acid, data in Codon_DNA.items()],
                             columns=['Amino Acid', 'Codon', 'Single Letter'])
         st.table(df)
 
     elif selected_option == "Analyze Sequence to Amino Acid":
-        purines = ["A", "G"]
-        pyrimidines = ["C", "T", "U"]
-        nitrogen_base = purines + pyrimidines
 
         choose = st.radio("Choose RNA or DNA sequence?", ("RNA", "DNA"))
         num_sequences = st.number_input("Enter the number of sequences (must be a multiple of 3):", min_value=3, step=3)
