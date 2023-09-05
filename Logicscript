@@ -1,0 +1,56 @@
+import random 
+from Basanitrogen import Codon_DNA
+
+purines = ["A", "G"]
+pyrimidines= ["C","T", "U"]
+nitrogen_base= purines+pyrimidines
+
+
+for amino_acid, data in Codon_DNA.items():
+    print(f"{amino_acid}: {', '.join(data['Codon'])} ({data['Single_Letter']})")
+
+choose = input("Choose RNA or DNA sequence? klik 'RNA' or 'DNA'!")
+number_sequence = int(input("Panjang Sequence:"))
+
+random_sequence = []
+if choose == "RNA":
+    for i in range (0, number_sequence):
+        number = random.randint(0, len(nitrogen_base)-1)
+        if number == 3:
+            number = 4
+        random_sequence.append(nitrogen_base[number])
+elif choose == "DNA":
+    for i in range (0, number_sequence):
+        number = random.randint(0, len(nitrogen_base)-1)
+        if number == 4:
+            number = 3
+        random_sequence.append(nitrogen_base[number])
+else: 
+    print("Choose the right choice")
+
+#Cetak Sequence 
+print("".join(random_sequence))
+
+
+#Jika pilihan sequence adalah RNA, maka dilakukan pengubahan basa dari U ke T agar sesuai dengan dictionary
+#for i in range (len(random_sequence)):
+#    if random_sequence[i]=='U':
+#       random_sequence[i]= 'T'
+
+print(random_sequence)
+# Membagi random_sequence menjadi string dengan 3 huruf
+split_sequence = []
+current_string = ""
+for base in random_sequence:
+    current_string += base
+    if len(current_string) == 3:
+        split_sequence.append(current_string)
+        current_string = ""
+print(split_sequence)
+
+#Melakukan iterasi pencocokan kodon dengan asam amino
+amino_acid = []
+for codon in split_sequence:
+    for amino_acid, data in Codon_DNA.items():
+        if codon in data["Codon"]:
+            print(f"Codon {codon}: {amino_acid} ({data['Single_Letter']})")
