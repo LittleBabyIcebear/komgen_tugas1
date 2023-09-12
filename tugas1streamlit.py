@@ -85,7 +85,7 @@ def main():
             genome_data_with_header = uploaded_file.read().decode()
 
             #Deskripsi untuk line pertama  
-            st.subheader("Description of the Genom")
+            st.subheader("Genome Description")
             lines = genome_data_with_header.split("\n")
             if lines:
                 desc = lines[0]
