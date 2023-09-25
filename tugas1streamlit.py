@@ -63,6 +63,8 @@ def count_dimer(window, genome_sequence):
     window_sequence.append(current_string)
     gc= np.zeros(len(window_sequence))
     ta= np.zeros(len(window_sequence))
+    freq_gc = gc
+    freq_ta = ta
     for piece,sequence in enumerate(window_sequence):
         for base in sequence:
             if base=="G" or base =="C":
@@ -75,7 +77,9 @@ def count_dimer(window, genome_sequence):
         window_info = {
             "Sequence": window_sequence[i],
             "Number GC": gc[i],
-            "Number TA": ta[i]
+            "Number TA": ta[i],
+            "Freq GC": freq_gc[i]/len(genome_sequence),
+            "Freq TA": freq_ta[i]/len(genome_sequence),
         }
         gc_ta_frequency_in_windo_sequence[f"Window_{i}"] = window_info
     return gc_ta_frequency_in_windo_sequence
@@ -152,7 +156,7 @@ def main():
             st.write(f"Length of the data: {len(genome_data_no_header)}")
             data = {
                  "Parameter": ["Adenin", "Guanin", "Cytosin", "Timin", "Error rate"],
-                 "Value (base)": [Adenin, Guanin, Cytosin, Timin, Error / len(genome_data_no_header)]
+                 "Value (base)": [Adenin/ len(genome_data_no_header), Guanin/ len(genome_data_no_header), Cytosin/ len(genome_data_no_header), Timin/ len(genome_data_no_header), Error / len(genome_data_no_header)]
              }
             df = pd.DataFrame(data)
             st.table(df)
@@ -184,18 +188,26 @@ def main():
 
                 # Menampilkan DataFrame
             st.table(data_dimer)
-
-            # Plotting GC and TA frequencies
             x = range(len(gc_ta_frequency_in_windo_sequence))
-            gc_values = [item["Number GC"] for item in gc_ta_frequency_in_windo_sequence.values()]
-            ta_values = [item["Number TA"] for item in gc_ta_frequency_in_windo_sequence.values()]
+            gc_values = [item["Freq GC"] for item in gc_ta_frequency_in_windo_sequence.values()]
+            ta_values = [item["Freq TA"] for item in gc_ta_frequency_in_windo_sequence.values()]
 
-            st.subheader("Frequency Graphic Dimer GC and TA")
-            #st.line_chart({"GC Frequency": gc_values, "TA Frequency": ta_values}, use_container_width=True,  key="line_chart_key",   xvalue="Frequency")  # Label pada sumbu y)
-            st.line_chart(
-            {"GC Frequency": gc_values, "TA Frequency": ta_values},
-            use_container_width=True,
-            )
+            # Membuat DataFrame dari data
+            data = pd.DataFrame({'x': x, 'GC Frequency': gc_values, 'TA Frequency': ta_values})
+
+            # Membuat plot Plotly
+            fig = px.line(data, x='x', y=['GC Frequency', 'TA Frequency'], title="Frequency Graphic Dimer GC and TA")
+
+            # Menambahkan label pada sumbu x dan sumbu y
+            fig.update_xaxes(title_text="Window")
+            fig.update_yaxes(title_text="Frequency")
+
+            # Mengaktifkan fitur zoomable
+            fig.update_layout(xaxis=dict(fixedrange=False), yaxis=dict(fixedrange=False))
+
+            # Menampilkan plot Plotly di Streamlit
+            st.plotly_chart(fig, use_container_width=True)
+
 
             
 
