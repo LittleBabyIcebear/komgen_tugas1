@@ -63,8 +63,6 @@ def count_dimer(window, genome_sequence):
     window_sequence.append(current_string)
     gc= np.zeros(len(window_sequence))
     ta= np.zeros(len(window_sequence))
-    freq_gc = gc
-    freq_ta = ta
     for piece,sequence in enumerate(window_sequence):
         for base in sequence:
             if base=="G" or base =="C":
@@ -78,8 +76,8 @@ def count_dimer(window, genome_sequence):
             "Sequence": window_sequence[i],
             "Number GC": gc[i],
             "Number TA": ta[i],
-            "Freq GC": freq_gc[i]/len(window_sequence),
-            "Freq TA": freq_ta[i]/len(window_sequence),
+            "Freq GC": gc[i]/len(window_sequence),
+            "Freq TA": ta[i]/len(window_sequence),
         }
         gc_ta_frequency_in_windo_sequence[f"Window_{i}"] = window_info
     return gc_ta_frequency_in_windo_sequence
