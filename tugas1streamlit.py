@@ -76,8 +76,8 @@ def count_dimer(window, genome_sequence):
             "Sequence": window_sequence[i],
             "Number GC": gc[i],
             "Number TA": ta[i],
-            "Freq GC": gc[i]/len(window_sequence),
-            "Freq TA": ta[i]/len(window_sequence),
+            "Freq GC": gc[i]/(window),
+            "Freq TA": ta[i]/(window),
         }
         gc_ta_frequency_in_windo_sequence[f"Window_{i}"] = window_info
     return gc_ta_frequency_in_windo_sequence
