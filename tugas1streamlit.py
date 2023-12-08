@@ -5,6 +5,8 @@ import random
 import plotly.express as px
 import plotly.graph_objects as go
 from Basanitrogen import Codon_DNA
+import os
+import shutil
 
 def generate_random_sequence(sequence_type, nitrogen_base, num_sequences):
     random_sequence = []
@@ -120,17 +122,95 @@ def change_point_analysis(gc_values, ta_values, gc_ta_frequency_in_windo_sequenc
             change_point.append(change_point[i-1])
     return change_point
 
+def orf_finder(genome_sequence, Codon_DNA, orf_code, index_orf, min_length, plus_or_min):
+    def translate_sequence_into_codons(sequence,Codon_DNA):
+        split_sequence = []
+        sequence_single_letter=[]
+        current_string = ""
+        for base in sequence:
+            current_string += base
+            if len(current_string) == 3:
+                split_sequence.append(current_string)
+                current_string = ""
+        for base in split_sequence:
+            for amino_acid, data in Codon_DNA.items():
+                if base in data["Codon"]:
+                    sequence_single_letter.append(data['Single_Letter'])
+        return sequence_single_letter
+
+    start_codon = "ATG"
+    stop_codons = ["TAA", "TAG", "TGA"]
+    final_dictionary = {}
+    index_orf_in_each_code = 1
+    
+    if plus_or_min == "+": 
+        operator_frame = "+"
+    elif plus_or_min == "-":
+        operator_frame = "-"
+
+    if orf_code == 1:
+        i = 0
+        type_frame = 1
+    elif orf_code == 2:
+        i = 1
+        type_frame = 2
+    elif orf_code == 3:
+        i = 2
+        type_frame = 3
+    
+    index_orf += 1
+    
+    while i < len(genome_sequence):
+        if i + 2 < len(genome_sequence) and genome_sequence[i] == 'A' and genome_sequence[i+1] == 'T' and genome_sequence[i+2] == 'G':
+            j = i + 3
+            while j < len(genome_sequence) - 2:
+                codon = genome_sequence[j] + genome_sequence[j+1] + genome_sequence[j+2]
+                if codon in stop_codons:
+                    orf_sequence = genome_sequence[i:j+3]
+                    if len(orf_sequence) >= min_length:
+                        if operator_frame == "+":
+                            orf_info = {
+                                "Index_ORF" : index_orf,
+                                "Frame ORF": f" Frame [{operator_frame}{type_frame}] Number in Each Frame: {index_orf_in_each_code}",
+                                "Index Start Codon": i+1,
+                                "Index Stop Codon": j+3,
+                                "ORF Lenght" :(j+2) - (i+1) +2,
+                                "Sequence ORF": orf_sequence,
+                                "Sequence Amino Acid": "".join(translate_sequence_into_codons(orf_sequence, Codon_DNA))
+                            }
+                        elif operator_frame == "-":
+                            orf_info = {
+                                "Index_ORF" : index_orf,
+                                "Frame ORF": f" Frame [{operator_frame}{type_frame}] Number in Each Frame: {index_orf_in_each_code}",
+                                "Index Start Codon": len(genome_sequence) - i,
+                                "Index Stop Codon": len(genome_sequence) - j-2,
+                                "ORF Lenght" :(j+2) - (i+1) +2,
+                                "Sequence ORF": orf_sequence,
+                                "Sequence Amino Acid": "".join(translate_sequence_into_codons(orf_sequence, Codon_DNA))
+                            }
+                        final_dictionary[f"Index ORF_{index_orf_in_each_code}"] = orf_info
+                        index_orf += 1
+                        index_orf_in_each_code += 1
+                    i = j + 3
+                    break
+                j += 3
+            else:
+                i += 3
+        else:
+            i += 3
+    
+    return final_dictionary
 
 def main():
     purines = ["A", "G"]
     pyrimidines = ["C", "T", "U"]
     nitrogen_base = purines + pyrimidines
-    st.title("🧬Random DNA/RNA Sequence Generator🧬")
     st.sidebar.title("Choose It! 🔎")
 
-    selected_option = st.sidebar.radio("Select an option", ["Show Amino Acid Table", "Analyze Sequence to Amino Acid", "Analyze Fasta File"])
+    selected_option = st.sidebar.radio("Select an option", ["Show Amino Acid Table", "Analyze Sequence to Amino Acid", "Analyze Fasta File", "Find Open Reading Frame"])
 
     if selected_option == "Show Amino Acid Table":
+        st.title("🧬Random DNA/RNA Sequence Generator🧬")
         st.subheader("Nitrogen Base Classification")
         st.write(f"Purines: {purines}")
         st.write(f"Pyrimidines: {pyrimidines}")
@@ -143,7 +223,7 @@ def main():
         st.table(df)
 
     elif selected_option == "Analyze Sequence to Amino Acid":
-
+        st.title("🧬Random DNA/RNA Sequence Generator🧬")
         choose = st.radio("Choose RNA or DNA sequence?", ("RNA", "DNA"))
         num_sequences = st.number_input("Enter the number of sequences (must be a multiple of 3):", min_value=3, step=3)
         random_sequence = generate_random_sequence(choose, nitrogen_base, num_sequences)
@@ -166,6 +246,7 @@ def main():
             map_codons_to_amino_acids(split_sequence, Codon_DNA)
     
     elif selected_option == "Analyze Fasta File":
+        st.title("🧬Advanture to the Fasta File🧬")
         st.subheader("Uploaded FASTA File")
         #Elemen upload file
         uploaded_file = st.file_uploader("Drag FASTA file here!", type=["fasta", "fa"])
@@ -269,8 +350,74 @@ def main():
 
             st.plotly_chart(fig_change_point, use_container_width=True)
 
+    elif selected_option == "Find Open Reading Frame":
+        st.title("🧬Find the Gene in the ORF🧬")
+        st.subheader("Uploaded FASTA File")
+        #Elemen upload file
+        uploaded_file = st.file_uploader("Drag FASTA file here!", type=["fasta", "fa"])
+        min_length = st.number_input("Given window length", min_value=1)
+        st.write("k_value is a variabel that define the nitrogen base minimum lenght of the ORF")
+        if st.button("Run"):
+            genome_data_with_header = uploaded_file.read().decode()
 
+            #Deskripsi untuk line pertama  
+            st.subheader("Description of the Genom")
+            lines = genome_data_with_header.split("\n")
+            if lines:
+                desc = lines[0]
+                st.write(desc)
+            
+            genome_sequence = "".join(genome_data_with_header.split("\n")[1:])  
+            # Membuat urutan baru untuk hasil pembalikan
+            inverse_genome_sequence = ""
+
+            # Melakukan pembalikan urutan dan penggantian nukleotida
+            for nucleotide in reversed(genome_sequence):
+                if nucleotide == "A":
+                    inverse_genome_sequence += "T"
+                elif nucleotide == "T":
+                    inverse_genome_sequence += "A"
+                elif nucleotide == "C":
+                    inverse_genome_sequence += "G"
+                elif nucleotide == "G":
+                    inverse_genome_sequence += "C"
+
+            orf_positif_1 = orf_finder(genome_sequence, Codon_DNA, 1, 0, min_length, "+")
+            orf_positif_2 = orf_finder(genome_sequence, Codon_DNA, 2, len(orf_positif_1), min_length, "+")
+            orf_positif_3 = orf_finder(genome_sequence, Codon_DNA, 3, len(orf_positif_2) + len(orf_positif_1), min_length, "+")
+            orf_negatif_4 = orf_finder(inverse_genome_sequence, Codon_DNA, 1, len(orf_positif_2) + len(orf_positif_1)+ len(orf_positif_3), min_length, "-")
+            orf_negatif_5 = orf_finder(inverse_genome_sequence, Codon_DNA, 2, len(orf_negatif_4)+len(orf_positif_2) + len(orf_positif_1)+ len(orf_positif_3), min_length, "-")
+            orf_negatif_6 = orf_finder(inverse_genome_sequence, Codon_DNA, 3, len(orf_negatif_5) + len(orf_negatif_4)+len(orf_positif_2) + len(orf_positif_1)+ len(orf_positif_3), min_length, "-")
+            combined_dicts = [orf_positif_1, orf_positif_2, orf_positif_3, orf_negatif_4, orf_negatif_5, orf_negatif_6]
+            st.subheader("ORF List:")
+            for index, dictionary in enumerate(combined_dicts, start=1):
+                st.write("--------")
+                for key, value in dictionary.items():
+                    if isinstance(value, dict):
+                        st.text("  " + key + ":")
+                        for inner_key, inner_value in value.items():
+                            if inner_key in ["Frame ORF", "Index Start Codon", "Index Stop Codon", "ORF Lenght"]:
+                                st.markdown(f"    **{inner_key}:** {inner_value}")
+                            else:
+                                st.markdown(f"    **{inner_key}:** {inner_value}")
+                    else:
+                        st.text("  " + key + ": " + value)
             
 
+# Fungsi untuk mengunduh data sebagai CSV
+        def download_combined_dict(data, file_name):
+            df = pd.DataFrame(data)
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download Data as CSV",
+                data=csv,
+                key=file_name,
+                file_name=file_name,
+                mime='text/csv'
+            )
+
+        download_combined_dict(combined_dicts, "combined_dict.csv")
+
+    
 if __name__ == "__main__":
     main()
