@@ -351,11 +351,11 @@ def main():
             st.plotly_chart(fig_change_point, use_container_width=True)
 
     elif selected_option == "Find Open Reading Frame":
-        st.title("🧬Find the Gene in the ORF🧬")
+        st.title("🧬Find Gene in the DNA Sequence🧬")
         st.subheader("Uploaded FASTA File")
         #Elemen upload file
         uploaded_file = st.file_uploader("Drag FASTA file here!", type=["fasta", "fa"])
-        min_length = st.number_input("Given window length", min_value=1)
+        min_length = st.number_input("Given minimal lenght", min_value=1)
         st.write("k_value is a variabel that define the nitrogen base minimum lenght of the ORF")
         if st.button("Run"):
             genome_data_with_header = uploaded_file.read().decode()
@@ -389,6 +389,17 @@ def main():
             orf_negatif_5 = orf_finder(inverse_genome_sequence, Codon_DNA, 2, len(orf_negatif_4)+len(orf_positif_2) + len(orf_positif_1)+ len(orf_positif_3), min_length, "-")
             orf_negatif_6 = orf_finder(inverse_genome_sequence, Codon_DNA, 3, len(orf_negatif_5) + len(orf_negatif_4)+len(orf_positif_2) + len(orf_positif_1)+ len(orf_positif_3), min_length, "-")
             combined_dicts = [orf_positif_1, orf_positif_2, orf_positif_3, orf_negatif_4, orf_negatif_5, orf_negatif_6]
+
+            st.subheader("Number ORF Found")
+
+            st.write(f"(ORF +1):   {len(orf_positif_1)}")
+            st.write(f"(ORF +2):   {len(orf_positif_2)}")
+            st.write(f"(ORF +3):   {len(orf_positif_3)}")
+            st.write(f"(ORF -1):   {len(orf_negatif_4)}")
+            st.write(f"(ORF -2):   {len(orf_negatif_5)}")
+            st.write(f"(ORF -3):   {len(orf_negatif_6)}")
+            st.write(f"Total ORF Found:   {len(orf_positif_1)+len(orf_positif_2)+len(orf_positif_3)+len(orf_negatif_4)+len(orf_negatif_5)+len(orf_negatif_6)}")
+
             st.subheader("ORF List:")
             for index, dictionary in enumerate(combined_dicts, start=1):
                 st.write("--------")
