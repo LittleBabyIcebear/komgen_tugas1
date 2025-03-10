@@ -246,7 +246,7 @@ def main():
             map_codons_to_amino_acids(split_sequence, Codon_DNA)
     
     elif selected_option == "Analyze Fasta File":
-        st.title("🧬Advanture to the Fasta File🧬")
+        st.title("🧬Adventure to the Fasta File🧬")
         st.subheader("Uploaded FASTA File")
         #Elemen upload file
         uploaded_file = st.file_uploader("Drag FASTA file here!", type=["fasta", "fa"])
@@ -266,7 +266,7 @@ def main():
             
             st.subheader("Genome Metrics")
             # Create a pie chart for Adenin, Guanin, Timin, and Cytosin using Plotly
-            st.write(f"Length of the data: {len(genome_data_no_header)}")
+            st.write(f"Length of the data: {len(genome_data_no_header)} base pair (bp)")
             data = {
                  "Parameter": ["Adenin", "Guanin", "Cytosin", "Timin", "Error rate"],
                  "Value (base)": [Adenin/ len(genome_data_no_header), Guanin/ len(genome_data_no_header), Cytosin/ len(genome_data_no_header), Timin/ len(genome_data_no_header), Error / len(genome_data_no_header)]
